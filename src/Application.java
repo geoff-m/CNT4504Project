@@ -1,5 +1,6 @@
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 public class Application {
     enum Mode
@@ -8,7 +9,6 @@ public class Application {
         Server,
         Client
     }
-
 
     private static Project1Server server;
 
@@ -45,7 +45,7 @@ public class Application {
             }
 
             try {
-                server = new Project1Server(port);
+                server = new Project1Server(port, 1);
                 server.start();
             } catch (IOException ex) {
                 System.out.format("Error setting up server: %s\n", ex.getMessage());
@@ -56,7 +56,35 @@ public class Application {
 
         if (mode == Mode.Client)
         {
+            if (args.length != 3)
+            {
+                showUsage();
+                return;
+            }
 
+            InetAddress addr;
+            try {
+                addr = InetAddress.getByName(args[1]);
+            } catch (IOException ex) {
+                System.out.format("Error: %s\n", ex.getMessage());
+                return;
+            }
+
+            Integer port = tryParseInteger(args[2]);
+            if (port == null)
+            {
+                System.out.format("Cannot parse port number \"%s\"\n", args[2]);
+                return;
+            }
+            Project1Client client;
+            try {
+                client = new Project1Client(addr, port);
+            } catch (IOException ex) {
+                System.out.format("Error connecting to server: %s\n", ex.getMessage());
+                return;
+            }
+
+            client.interact();
         }
     }
 
