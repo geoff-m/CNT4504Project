@@ -63,7 +63,7 @@ public class Project1Server {
                         handler.start();
                     }
 
-                    // Wait for runningHandlers to fall below maximum. then start accepting clients again.
+                    // Wait for runningHandlers to fall below maximum. Then start accepting clients again.
                     synchronized (server)
                     {
                         //System.out.println("Waiting for clients to leave...");

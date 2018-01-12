@@ -45,31 +45,32 @@ public class Project1Client {
             if (equalsAnyIgnoreCase(uin, "quit", "stop", "exit"))
                 return;
 
-            Operation op = null;
+            Operation op;
             // Try parsing the choice as a number.
             Integer choice = tryParseInteger(uin.replaceAll("[\\p{Punct}]", ""));
 
             if (choice == null)
             {
                 // Try parsing the choice as a word.
-                List<Operation> ops = _operations.stream().filter(o -> o.matches(uin)).collect(Collectors.toCollection(ArrayList<Operation>::new));
-                if (ops.size() == 0)
+                List<Operation> matches = _operations.stream().filter(o -> o.matches(uin)).collect(Collectors.toCollection(ArrayList<Operation>::new));
+                switch (matches.size())
                 {
-                    // Search returned no results.
-                    System.out.println("Invalid choice.");
-                    showMenu();
-                    continue;
+                    case 0:
+                        // Search returned no results.
+                        System.out.println("Invalid choice.");
+                        showMenu();
+                        continue;
+                    case 1:
+                        // Search returned exactly one result.
+                        op = matches.get(0);
+                        break;
+                    default:
+                        // There was some ambiguity when attempting to map the input to an operation.
+                        // This will never happen in deployment if nicknames are mutually exclusive.
+                        System.out.format("Did you mean %s?\n", orList(matches.stream().map(o -> String.valueOf(_operations.indexOf(o) + 1)).toArray(String[]::new)));
+                        showMenu();
+                        continue;
                 }
-                if (ops.size() > 1)
-                {
-                    // There was some ambiguity when attempting to map the input to the valid operations.
-                    // This should never happen in deployment, since nicknames should be mutually exclusive.
-
-                    System.out.format("Did you mean %s?", orList(ops.stream().map(o -> String.valueOf(_operations.indexOf(o) + 1)).toArray(String[]::new)));
-                    showMenu();
-                }
-                // Search returned exactly one result.
-                op = ops.get(0);
             } else {
                 if (choice == 0)
                     return; // 0 means quit.
@@ -86,17 +87,18 @@ public class Project1Client {
                 System.out.format("OPERATION SELECTED: %s\n", op.getDescription());
 
             // Send the command to the server.
-           /*
+
             try {
-                writeByte(op.code);
+                writeByte(op.code); // untested.
 
                 // todo: get response and display it
+
+
             } catch (IOException ex) {
                 System.out.format("Error communicating with server: %s\n", ex.getMessage());
             }
-            */
 
-        }
+        } // infinite loop.
 
     }
 
@@ -145,12 +147,18 @@ public class Project1Client {
     static {
         _operations = new ArrayList<>(6);
         // Server and client must agree on the byte ("code" parameter).
-        _operations.add(new Operation("Get host date & time",  (byte)11,  "date", "time"));
-        _operations.add(new Operation("Get host uptime",  (byte)22,  "uptime"));
-        _operations.add(new Operation("Get host memory usage",  (byte)33,  "memory", "mem"));
-        _operations.add(new Operation("Get host netstat output",  (byte)44,  "netstat"));
-        _operations.add(new Operation("Get host current users",  (byte)55,  "users", "who"));
-        _operations.add(new Operation("Get host running processes",  (byte)66,  "process", "processes", "ps"));
+        _operations.add(new Operation("Get host date & time",  (byte)11,
+                "date", "time"));
+        _operations.add(new Operation("Get host uptime",  (byte)22,
+                "uptime"));
+        _operations.add(new Operation("Get host memory usage",  (byte)33,
+                "memory", "mem", "free"));
+        _operations.add(new Operation("Get host netstat output",  (byte)44,
+                "netstat"));
+        _operations.add(new Operation("Get host current users",  (byte)55,
+                "users", "who"));
+        _operations.add(new Operation("Get host running processes",  (byte)66,
+                "process", "processes", "ps"));
     }
 
     static class Operation

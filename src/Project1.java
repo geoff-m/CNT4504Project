@@ -4,17 +4,30 @@ import java.net.InetAddress;
 
 /*
  * This class contains the entry point for the application.
- * It parses the command line arguments and begins execution.
+ * It parses the command-line arguments and starts execution in the specified mode.
  */
 public class Project1 {
+
+    private static void showUsage()
+    {
+        System.out.println("Usage: project1 [mode] [arguments]");
+
+        System.out.println("[mode] - Either client (c) or server (s)");
+
+        System.out.println("Client arguments: [host address] [port]");
+        System.out.println("[host address] - The remote host's IPv4 address");
+        System.out.println("[port] - The remote port to connect");
+
+        System.out.println("\nServer arguments:[port]");
+        System.out.println("[port] - The port to listen on");
+    }
+
     enum Mode
     {
         Unknown,
         Server,
         Client
     }
-
-    private static Project1Server server;
 
     public static void main(String[] args)
     {
@@ -49,7 +62,7 @@ public class Project1 {
             }
 
             try {
-                server = new Project1Server(port, 1);
+                Project1Server server = new Project1Server(port, 1);
                 server.start();
             } catch (IOException ex) {
                 System.out.format("Error setting up server: %s\n", ex.getMessage());
@@ -116,19 +129,5 @@ public class Project1 {
         return Mode.Unknown;
     }
 
-
-    private static void showUsage()
-    {
-        System.out.println("Usage: project1 [mode] [arguments]");
-
-        System.out.println("[mode] - Either client (c) or server (s)");
-
-        System.out.println("Client arguments: [host address] [port]");
-        System.out.println("[host address] - The remote host's IPv4 address");
-        System.out.println("[port] - The remote port to connect");
-
-        System.out.println("\nServer arguments:[port]");
-        System.out.println("[port] - The port to listen on");
-    }
 
 }

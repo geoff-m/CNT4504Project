@@ -27,14 +27,13 @@ public class ClientHandler extends Thread {
     }
 
     @Override
-    public void run()
+    public void run() // todo: change this method to respond to client requests like we're supposed to. right now, it just prints the request to stdout.
     {
         try {
             InputStream read = client.getInputStream();
             StringBuilder msg = new StringBuilder();
             String clientSaid;
             do {
-                //msg = new StringBuilder(); // Yes, we allocate a new StringBuilder every time. There appears to be no good way to simply clear it.
                 do {
                     int bytesRead = read.read(rbuf);
                     if (bytesRead == -1) {
@@ -46,12 +45,13 @@ public class ClientHandler extends Thread {
 
                 clientSaid = msg.toString().trim();
                 System.out.format("Client said: \"%s\"\n", clientSaid);
-                msg.setLength(0); // clear buffer.
+                msg.setLength(0); // Clear the StringBuilder.
+
             } while (clientSaid.compareToIgnoreCase("quit") != 0 && clientSaid.compareToIgnoreCase("exit") != 0);
 
         } catch (IOException ex) {
             String exmsg = ex.getMessage();
-            if (!exmsg.equals("Connection reset"))
+            if (!exmsg.equals("Connection reset")) // todo: Is there a more robust way to detect client disconnect as the cause of the exception?
                 System.out.format("Error communicating with client: %s\n", exmsg);
         } finally {
             try {
@@ -59,11 +59,12 @@ public class ClientHandler extends Thread {
                     client.close();
             } catch (Exception e) {} // Ignore exception when attempting to close client.
 
+            System.out.format("Client disconnected: %s\n", client.getRemoteSocketAddress().toString());
+
             for (Consumer<ClientHandler> listener : termListeners)
             {
                 listener.accept(this);
             }
-            System.out.format("Client disconnected: %s\n", client.getRemoteSocketAddress().toString());
         }
     }
 
