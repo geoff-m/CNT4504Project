@@ -103,6 +103,7 @@ public class Project1 {
 
             //client.chatDemo();
             client.interact();
+            client.disconnect();
         }
     }
 

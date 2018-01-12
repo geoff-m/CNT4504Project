@@ -27,27 +27,23 @@ public class ClientHandler extends Thread {
     }
 
     @Override
-    public void run() // todo: change this method to respond to client requests like we're supposed to. right now, it just prints the request to stdout.
+    public void run()
     {
         try {
             InputStream read = client.getInputStream();
-            StringBuilder msg = new StringBuilder();
-            String clientSaid;
-            do {
+            while (client.isConnected()) {
                 do {
-                    int bytesRead = read.read(rbuf);
-                    if (bytesRead == -1) {
+                    int message = read.read();
+                    if (message == -1) {
                         // This means client has disconnected.
-                        return;
+                        return; // Jump to finally...
                     }
-                    msg.append(new String(rbuf, 0, bytesRead, StandardCharsets.UTF_8));
-                } while (read.available() > 0);
-
-                clientSaid = msg.toString().trim();
-                System.out.format("Client said: \"%s\"\n", clientSaid);
-                msg.setLength(0); // Clear the StringBuilder.
-
-            } while (clientSaid.compareToIgnoreCase("quit") != 0 && clientSaid.compareToIgnoreCase("exit") != 0);
+                    boolean success = handleMessage((byte) message);
+                    if (!success) {
+                        System.out.println("Message could not be handled successfully.");
+                    }
+                } while (read.available() > 0); // While buffer not empty.
+            }
 
         } catch (IOException ex) {
             String exmsg = ex.getMessage();
@@ -65,6 +61,95 @@ public class ClientHandler extends Thread {
             {
                 listener.accept(this);
             }
+        }
+    }
+
+    // Handles the incoming message from the client and responds if necessary.
+    // Returns true if the message was handled, otherwise false.
+    private boolean handleMessage(byte code)
+    {
+        switch (code)
+        {
+            case (byte)11:
+                handleDateAndTime();
+                return true;
+            case (byte)22:
+                handleUptime();
+                return true;
+            case (byte)33:
+                handleMemoryUsage();
+                return true;
+            case (byte)44:
+                handleNetstat();
+                return true;
+            case (byte)55:
+                handleUsers();
+                return true;
+            case (byte)66:
+                handleProcesses();
+                return true;
+            default:
+                System.out.printf("Unknown command: %02x\n", code);
+                return false;
+        }
+    }
+
+    private void handleDateAndTime()
+    {
+        try {
+            client.getOutputStream().write(StandardCharsets.UTF_8.encode("it's about tree fiddy").array());
+            client.getOutputStream().flush();
+        } catch (IOException ex) {
+            System.out.format("Error sending date and time: %s\n", ex.getMessage());
+        }
+    }
+
+    private void handleUptime()
+    {
+        try {
+            client.getOutputStream().write(StandardCharsets.UTF_8.encode("i've been up since dawn").array());
+            client.getOutputStream().flush();
+        } catch (IOException ex) {
+            System.out.format("Error sending uptime: %s\n", ex.getMessage());
+        }
+    }
+    private void handleMemoryUsage()
+    {
+        try {
+            client.getOutputStream().write(StandardCharsets.UTF_8.encode("1234 MB in use").array());
+            client.getOutputStream().flush();
+        } catch (IOException ex) {
+            System.out.format("Error sending memory usage: %s\n", ex.getMessage());
+        }
+    }
+
+    private void handleNetstat()
+    {
+        try {
+            client.getOutputStream().write(StandardCharsets.UTF_8.encode("all my interwebs").array());
+            client.getOutputStream().flush();
+        } catch (IOException ex) {
+            System.out.format("Error sending netstat output: %s\n", ex.getMessage());
+        }
+    }
+
+    private void handleUsers()
+    {
+        try {
+            client.getOutputStream().write(StandardCharsets.UTF_8.encode("tom, dick and harry").array());
+            client.getOutputStream().flush();
+        } catch (IOException ex) {
+            System.out.format("Error sending users: %s\n", ex.getMessage());
+        }
+    }
+
+    private void handleProcesses()
+    {
+        try {
+            client.getOutputStream().write(StandardCharsets.UTF_8.encode("i got 99 problems").array());
+            client.getOutputStream().flush();
+        } catch (IOException ex) {
+            System.out.format("Error sending processes: %s\n", ex.getMessage());
         }
     }
 

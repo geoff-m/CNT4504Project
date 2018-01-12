@@ -1,5 +1,7 @@
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -8,6 +10,7 @@ import java.util.stream.Stream;
 public class Project1Client {
 
     private Socket client;
+    final int READ_BUFFER_SIZE = 4096;
 
     public Project1Client(InetAddress remoteAddress, int port) throws IOException
     {
@@ -87,12 +90,11 @@ public class Project1Client {
                 System.out.format("OPERATION SELECTED: %s\n", op.getDescription());
 
             // Send the command to the server.
-
             try {
-                writeByte(op.code); // untested.
+                writeByte(op.code);
 
-                // todo: get response and display it
-
+                // display response from server (as text)
+                System.out.println(readAll(client.getInputStream()));
 
             } catch (IOException ex) {
                 System.out.format("Error communicating with server: %s\n", ex.getMessage());
@@ -100,6 +102,27 @@ public class Project1Client {
 
         } // infinite loop.
 
+    }
+
+    private String readAll(InputStream is) throws IOException
+    {
+        StringBuilder sb = new StringBuilder(is.available());
+        byte[] buf = new byte[READ_BUFFER_SIZE];
+        int bytesRead;
+        do
+        {
+            bytesRead = is.read(buf);
+            sb.append(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(buf)));
+        } while (bytesRead > 0 && is.available() > 0);
+        return sb.toString();
+    }
+
+    public void disconnect()
+    {
+        try {
+            if (client != null)
+                client.close();
+        } catch (IOException ex) { }
     }
 
     private static boolean equalsAnyIgnoreCase(String comparand, String... choices)
@@ -126,10 +149,11 @@ public class Project1Client {
         return sb.toString();
     }
 
-    // Writes a single byte to the socket.
+    // Immediately sends a single byte to the socket.
     private void writeByte(byte b) throws IOException
     {
         client.getOutputStream().write(b);
+        client.getOutputStream().flush();
     }
 
     private static Integer tryParseInteger(String s)
