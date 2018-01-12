@@ -2,7 +2,11 @@
 import java.io.IOException;
 import java.net.InetAddress;
 
-public class Application {
+/*
+ * This class contains the entry point for the application.
+ * It parses the command line arguments and begins execution.
+ */
+public class Project1 {
     enum Mode
     {
         Unknown,
@@ -84,6 +88,7 @@ public class Application {
                 return;
             }
 
+            //client.chatDemo();
             client.interact();
         }
     }
