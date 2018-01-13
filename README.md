@@ -1,5 +1,5 @@
-# CNT4504Project1
-Team 4's first project for CNT4504 (Spring 2018)
+# CNT4504Project
+Team 4's project for CNT4504 (Spring 2018)
 
 This repository contains our class project.
 
