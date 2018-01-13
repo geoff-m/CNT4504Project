@@ -87,7 +87,7 @@ public class Project1Client {
                 op = _operations.get(choice - 1);
             }
 
-                System.out.format("OPERATION SELECTED: %s\n", op.getDescription());
+                //System.out.format("OPERATION SELECTED: %s\n", op.getDescription());
 
             // Send the command to the server.
             try {

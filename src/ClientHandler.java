@@ -2,33 +2,33 @@
 import java.net.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalUnit;
 import java.util.HashSet;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.function.Consumer;
 
 public class ClientHandler extends Thread {
 
     private Socket client;
+    private OutputStream write;
 
-    private final int READ_BUFFER_SIZE = 1024;
-    private byte[] rbuf = new byte[READ_BUFFER_SIZE];
-
-    public ClientHandler(Socket client)
-    {
+    public ClientHandler(Socket client) throws IOException {
         this.client = client;
-
+        write = client.getOutputStream();
     }
 
     private Set<Consumer<ClientHandler>> termListeners = new HashSet<>();
 
-    public void addTerminationListener(Consumer<ClientHandler> listener)
-    {
+    public void addTerminationListener(Consumer<ClientHandler> listener) {
         termListeners.add(listener);
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         try {
             InputStream read = client.getInputStream();
             while (client.isConnected()) {
@@ -53,12 +53,12 @@ public class ClientHandler extends Thread {
             try {
                 if (client != null)
                     client.close();
-            } catch (Exception e) {} // Ignore exception when attempting to close client.
+            } catch (IOException e) {
+            } // Ignore exception when attempting to close client.
 
             System.out.format("Client disconnected: %s\n", client.getRemoteSocketAddress().toString());
 
-            for (Consumer<ClientHandler> listener : termListeners)
-            {
+            for (Consumer<ClientHandler> listener : termListeners) {
                 listener.accept(this);
             }
         }
@@ -66,91 +66,128 @@ public class ClientHandler extends Thread {
 
     // Handles the incoming message from the client and responds if necessary.
     // Returns true if the message was handled, otherwise false.
-    private boolean handleMessage(byte code)
-    {
-        switch (code)
-        {
-            case (byte)11:
-                handleDateAndTime();
-                return true;
-            case (byte)22:
-                handleUptime();
-                return true;
-            case (byte)33:
-                handleMemoryUsage();
-                return true;
-            case (byte)44:
-                handleNetstat();
-                return true;
-            case (byte)55:
-                handleUsers();
-                return true;
-            case (byte)66:
-                handleProcesses();
-                return true;
-            default:
-                System.out.printf("Unknown command: %02x\n", code);
-                return false;
+    private boolean handleMessage(byte code) {
+        try {
+            switch (code) {
+                case (byte) 11:
+                    handleDateAndTime();
+                    return true;
+                case (byte) 22:
+                    handleUptime();
+                    return true;
+                case (byte) 33:
+                    handleMemoryUsage();
+                    return true;
+                case (byte) 44:
+                    handleNetstat();
+                    return true;
+                case (byte) 55:
+                    handleUsers();
+                    return true;
+                case (byte) 66:
+                    handleProcesses();
+                    return true;
+                default:
+                    System.out.printf("Unknown command: %02x\n", code);
+                    return false;
+            }
+        } catch (IOException ioe) {
+            System.out.printf("Error handling message! code = %02x\n", code);
+            return false;
         }
     }
 
-    private void handleDateAndTime()
-    {
-        try {
-            client.getOutputStream().write(StandardCharsets.UTF_8.encode("it's about tree fiddy").array());
-            client.getOutputStream().flush();
-        } catch (IOException ex) {
-            System.out.format("Error sending date and time: %s\n", ex.getMessage());
-        }
+    private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy, HH:mm:ss");
+
+    private void handleDateAndTime() throws IOException {
+        write.write(StandardCharsets.UTF_8.encode(LocalDateTime.now().format(dtf)).array());
+        write.flush();
     }
 
-    private void handleUptime()
-    {
-        try {
-            client.getOutputStream().write(StandardCharsets.UTF_8.encode("i've been up since dawn").array());
-            client.getOutputStream().flush();
-        } catch (IOException ex) {
-            System.out.format("Error sending uptime: %s\n", ex.getMessage());
-        }
-    }
-    private void handleMemoryUsage()
-    {
-        try {
-            client.getOutputStream().write(StandardCharsets.UTF_8.encode("1234 MB in use").array());
-            client.getOutputStream().flush();
-        } catch (IOException ex) {
-            System.out.format("Error sending memory usage: %s\n", ex.getMessage());
-        }
+    // Check we're on Linux.
+    private static boolean haveUnix;
+    static {
+        haveUnix = System.getProperty("os.name").toLowerCase().contains("nix");
     }
 
-    private void handleNetstat()
+    private void handleUptime() throws IOException // todo: test on linux
     {
-        try {
-            client.getOutputStream().write(StandardCharsets.UTF_8.encode("all my interwebs").array());
-            client.getOutputStream().flush();
-        } catch (IOException ex) {
-            System.out.format("Error sending netstat output: %s\n", ex.getMessage());
+        String msg;
+        if (haveUnix) {
+            int upSeconds;
+            Scanner read = null;
+            try {
+                read = new Scanner(new FileInputStream("/proc/uptime"));
+                upSeconds = read.nextInt();
+            } catch (IOException e) {
+                System.out.format("Error getting uptime: %s\n", e.getMessage());
+                upSeconds = -1;
+            } finally {
+                if (read != null)
+                    read.close();
+            }
+            if (upSeconds == -1) {
+                msg = "Error reading uptime";
+            } else {
+                int upMinutes = upSeconds / 60;
+                int upHours = upMinutes / 60;
+                int upDays = upHours / 24;
+
+                if (upDays > 0) {
+                    msg = String.format("%dd%dh%02dm%02ds", upDays, upHours, upMinutes, upSeconds);
+                } else {
+                    msg = String.format("%dh%02dm%02ds", upHours, upMinutes, upSeconds);
+                }
+            }
+        } else {
+            msg = "Uptime not supported";
         }
+        write.write(StandardCharsets.UTF_8.encode(msg).array());
+        write.flush();
     }
 
-    private void handleUsers()
+    private void handleMemoryUsage() throws IOException // todo: test me on linux
     {
-        try {
-            client.getOutputStream().write(StandardCharsets.UTF_8.encode("tom, dick and harry").array());
-            client.getOutputStream().flush();
-        } catch (IOException ex) {
-            System.out.format("Error sending users: %s\n", ex.getMessage());
+        String msg;
+        if (haveUnix) {
+            try {
+                ProcessBuilder psb = new ProcessBuilder();
+                psb.command("free", "-h"); // -h for human-readable format
+                Process p = psb.start();
+                InputStreamReader isr = new InputStreamReader(p.getInputStream());
+                BufferedReader read = new BufferedReader(isr);
+                Scanner s = new Scanner(read);
+                s.nextLine(); // Discard unneeded output.
+                s.next();
+                s.next();
+                msg = s.next();
+                s.close();
+            } catch (IOException e) {
+                msg = "Error reading memory usage";
+            }
+        } else {
+            msg = "Memory usage not supported";
         }
+        write.write(StandardCharsets.UTF_8.encode(msg).array());
+        write.flush();
     }
 
-    private void handleProcesses()
+    private void handleNetstat() throws IOException // todo: implement me!
     {
-        try {
-            client.getOutputStream().write(StandardCharsets.UTF_8.encode("i got 99 problems").array());
-            client.getOutputStream().flush();
-        } catch (IOException ex) {
-            System.out.format("Error sending processes: %s\n", ex.getMessage());
-        }
+        write.write(StandardCharsets.UTF_8.encode("all my interwebs").array());
+        write.flush();
+    }
+
+    private void handleUsers() throws IOException // todo: implement me!
+    {
+        write.write(StandardCharsets.UTF_8.encode("tom, dick and harry").array());
+        write.flush();
+    }
+
+    private void handleProcesses() throws IOException // todo: implement me!
+    {
+        write.write(StandardCharsets.UTF_8.encode("i got 99 problems").array());
+        write.flush();
     }
 
 }
