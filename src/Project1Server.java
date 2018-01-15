@@ -1,3 +1,9 @@
+/*
+ * This server uses a monitor and an atomic int to achieve basically the same effect as
+ * the "fixed thread pool" described in https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Executors.html#newFixedThreadPool-int-
+ * While the number of concurrent clients is at its allowed maximum, the server stops accepting (i.e. ignores) new ones.
+ */
+
 
 import java.io.IOException;
 import java.net.*;
@@ -7,25 +13,26 @@ public class Project1Server {
 
     private ServerSocket svSock;
 
+    private Listener listen;
+    private Thread tListen;
     public Project1Server(int port, int maximumClients) throws IOException
     {
         maxClients = maximumClients;
 
         svSock = new ServerSocket(port);
-        listen = new Thread(new Listener(this));
+        listen = new Listener(this);
+        tListen = new Thread(listen);
     }
 
-
-    private Thread listen;
     public void start()
     {
-        System.out.format("Starting server on port %d.\n", svSock.getLocalPort());
-        listen.start();
+        System.out.format("Starting server on %s.\n", svSock.getLocalSocketAddress().toString());
+        tListen.start();
     }
 
     public void stop()
     {
-        listen.interrupt(); // untested. this may not accomplish what we want.
+        listen.stop();
     }
 
     class Listener implements Runnable
@@ -38,7 +45,7 @@ public class Project1Server {
 
         boolean stop = false;
 
-        public synchronized void Stop()
+        public synchronized void stop()
         {
             stop = true;
             notify();
@@ -83,13 +90,11 @@ public class Project1Server {
     private int maxClients;
     private AtomicInteger runningHandlers = new AtomicInteger(); // current number of clients we have.
 
-    //
     private synchronized void onHandlerTerminated(ClientHandler source)
     {
         int currentClients = runningHandlers.decrementAndGet();
         System.out.format("The number of clients is now %d.\n", currentClients);
         notify();
     }
-
 
 }
