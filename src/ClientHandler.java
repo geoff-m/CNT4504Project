@@ -69,22 +69,22 @@ public class ClientHandler extends Thread {
     private boolean handleMessage(byte code) {
         try {
             switch (code) {
-                case (byte) 11:
+                case 0x11:
                     handleDateAndTime();
                     return true;
-                case (byte) 22:
+                case 0x22:
                     handleUptime();
                     return true;
-                case (byte) 33:
+                case 0x33:
                     handleMemoryUsage();
                     return true;
-                case (byte) 44:
+                case 0x44:
                     handleNetstat();
                     return true;
-                case (byte) 55:
+                case 0x55:
                     handleUsers();
                     return true;
-                case (byte) 66:
+                case 0x66:
                     handleProcesses();
                     return true;
                 default:
@@ -106,6 +106,7 @@ public class ClientHandler extends Thread {
 
     // Check we're on Linux.
     private static boolean haveUnix;
+
     static {
         haveUnix = System.getProperty("os.name").toLowerCase().contains("nix");
     }
@@ -140,7 +141,7 @@ public class ClientHandler extends Thread {
                 }
             }
         } else {
-            msg = "Uptime not supported";
+            msg = "Uptime not supported (linux not detected)";
         }
         write.write(StandardCharsets.UTF_8.encode(msg).array());
         write.flush();
@@ -166,7 +167,7 @@ public class ClientHandler extends Thread {
                 msg = "Error reading memory usage";
             }
         } else {
-            msg = "Memory usage not supported";
+            msg = "Memory usage not supported (linux not detected)";
         }
         write.write(StandardCharsets.UTF_8.encode(msg).array());
         write.flush();
@@ -174,19 +175,19 @@ public class ClientHandler extends Thread {
 
     private void handleNetstat() throws IOException // todo: implement me!
     {
-        write.write(StandardCharsets.UTF_8.encode("all my interwebs").array());
+        write.write(StandardCharsets.UTF_8.encode("dummy netstat output").array());
         write.flush();
     }
 
     private void handleUsers() throws IOException // todo: implement me!
     {
-        write.write(StandardCharsets.UTF_8.encode("tom, dick and harry").array());
+        write.write(StandardCharsets.UTF_8.encode("dummy users output").array());
         write.flush();
     }
 
     private void handleProcesses() throws IOException // todo: implement me!
     {
-        write.write(StandardCharsets.UTF_8.encode("i got 99 problems").array());
+        write.write(StandardCharsets.UTF_8.encode("dummy ps output").array());
         write.flush();
     }
 

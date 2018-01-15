@@ -171,17 +171,17 @@ public class Project1Client {
     static {
         _operations = new ArrayList<>(6);
         // Server and client must agree on the byte ("code" parameter).
-        _operations.add(new Operation("Get host date & time",  (byte)11,
+        _operations.add(new Operation("Get host date & time",  (byte)0x11,
                 "date", "time"));
-        _operations.add(new Operation("Get host uptime",  (byte)22,
+        _operations.add(new Operation("Get host uptime",  (byte)0x22,
                 "uptime"));
-        _operations.add(new Operation("Get host memory usage",  (byte)33,
+        _operations.add(new Operation("Get host memory usage",  (byte)0x33,
                 "memory", "mem", "free"));
-        _operations.add(new Operation("Get host netstat output",  (byte)44,
+        _operations.add(new Operation("Get host netstat output",  (byte)0x44,
                 "netstat"));
-        _operations.add(new Operation("Get host current users",  (byte)55,
+        _operations.add(new Operation("Get host current users",  (byte)0x55,
                 "users", "who"));
-        _operations.add(new Operation("Get host running processes",  (byte)66,
+        _operations.add(new Operation("Get host running processes",  (byte)0x66,
                 "process", "processes", "ps"));
     }
 
