@@ -29,6 +29,9 @@ public class Project1 {
         Client
     }
 
+// java Project1 server 1337 -- this starts a server let's say on 192.168.0.5
+    // java Project1 client 192.168.0.5 1337
+
     public static void main(String[] args)
     {
         if (args.length == 0)
