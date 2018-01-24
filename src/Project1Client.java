@@ -7,11 +7,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+// Represents a client.
 public class Project1Client {
 
     private Socket client;
     final int READ_BUFFER_SIZE = 4096;
 
+    // Creates a new client which is connected to the given server.
     public Project1Client(InetAddress remoteAddress, int port) throws IOException
     {
         client = new Socket(remoteAddress, port);
@@ -37,6 +39,7 @@ public class Project1Client {
         System.out.println("Disconnected from server.");
     }
 
+    // Uses the console to present a menu and interact with the server. Returns when the user indicates they want to quit.
     public void interact()
     {
         Scanner read = new Scanner(System.in);
@@ -101,9 +104,9 @@ public class Project1Client {
             }
 
         } // infinite loop.
-
     }
 
+    // Reads all data from the given stream and decodes it as UTF-8 text.
     private String readAll(InputStream is) throws IOException
     {
         StringBuilder sb = new StringBuilder(is.available());
@@ -117,6 +120,7 @@ public class Project1Client {
         return sb.toString();
     }
 
+    // Disconnects from the server.
     public void disconnect()
     {
         try {
@@ -125,6 +129,7 @@ public class Project1Client {
         } catch (IOException ex) { }
     }
 
+    // Returns true if and only if the first argument equals any of the other arguments.
     private static boolean equalsAnyIgnoreCase(String comparand, String... choices)
     {
         for (String c : choices)
@@ -135,7 +140,7 @@ public class Project1Client {
         return false;
     }
 
-    // Formats a list of strings as a pretty string with commas and "or".
+    // Formats a list of strings as a pretty string with commas, spaces, and "or".
     private static String orList(String... items)
     {
         StringBuilder sb = new StringBuilder();
@@ -156,6 +161,7 @@ public class Project1Client {
         client.getOutputStream().flush();
     }
 
+    // Parses the given string as an integer. Returns null on failure.
     private static Integer tryParseInteger(String s)
     {
         try {
@@ -166,6 +172,7 @@ public class Project1Client {
     }
 
 
+    // Represents all the things this client can be made to say to the server.
     private static List<Operation> _operations;
 
     static {
@@ -185,6 +192,7 @@ public class Project1Client {
                 "process", "processes", "ps"));
     }
 
+    // Represents a function the client has.
     static class Operation
     {
         private String descr;
@@ -220,6 +228,7 @@ public class Project1Client {
         }
     }
 
+    // Displays the list of choices to the user.
     private void showMenu()
     {
         System.out.format("---There are %d supported operations-------------\n", _operations.size());

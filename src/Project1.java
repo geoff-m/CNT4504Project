@@ -12,14 +12,15 @@ public class Project1 {
     {
         System.out.println("Usage: project1 [mode] [arguments]");
 
-        System.out.println("[mode] - Either client (c) or server (s)");
+        System.out.println("[mode] - server (s), client (c), or many (m)");
 
-        System.out.println("Client arguments: [host address] [port]");
+        System.out.println("\nServer arguments: [port]");
+        System.out.println("[port] - The port to listen on");
+
+        System.out.println("Client or many-client arguments: [host address] [port]");
         System.out.println("[host address] - The remote host's IPv4 address");
         System.out.println("[port] - The remote port to connect");
 
-        System.out.println("\nServer arguments:[port]");
-        System.out.println("[port] - The port to listen on");
     }
 
     enum Mode
