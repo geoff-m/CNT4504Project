@@ -20,6 +20,23 @@ public class Project1Client {
 
     }
 
+    public boolean connect()
+    {
+        while (true)
+        {
+            if (client.isConnected()) // this doesn't work. always seems to return true.
+            {
+                return true; // We successfully connected.
+            }
+            try
+            {
+                Thread.sleep(1000); // wait before checking again
+            } catch (InterruptedException ie) {
+                return false;
+            }
+        }
+    }
+
     // Used for testing client->server communication.
     public void chatDemo()
     {

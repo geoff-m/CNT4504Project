@@ -98,8 +98,13 @@ public class Project1 {
                 return;
             }
             Project1Client client;
+            System.out.println("Connecting...");
             try {
                 client = new Project1Client(addr, port);
+                if (!client.connect())
+                {
+                    System.out.println("Failed to connect.");
+                }
             } catch (IOException ex) {
                 System.out.format("Error connecting to server: %s\n", ex.getMessage());
                 return;
