@@ -21,9 +21,5 @@ public class ManyClients {
 
     }
 
-    public void disconnectAll()
-    {
-        clients.stream().forEach(c -> c.disconnect());
-    }
 
 }

@@ -15,10 +15,8 @@ public class Project1Server {
 
     private Listener listen;
     private Thread tListen;
-    public Project1Server(int port, int maximumClients) throws IOException
+    public Project1Server(int port) throws IOException
     {
-        maxClients = maximumClients;
-
         svSock = new ServerSocket(port);
         listen = new Listener(this);
         tListen = new Thread(listen);
@@ -30,9 +28,23 @@ public class Project1Server {
         tListen.start();
     }
 
-    public void stop()
+    public boolean isRunning()
+    {
+        return tListen.isAlive();
+    }
+
+    public void stop(long timeoutMilliseconds)
     {
         listen.stop();
+        try {
+            tListen.join(timeoutMilliseconds);
+        } catch (InterruptedException ex) { }
+    }
+
+    public void abort()
+    {
+        listen.stop();
+        tListen.interrupt();
     }
 
     class Listener implements Runnable
@@ -48,53 +60,35 @@ public class Project1Server {
         public synchronized void stop()
         {
             stop = true;
-            notify();
         }
 
         @Override
         public void run()
         {
-            try {
-
-                while (!stop)
+            while (!stop)
+            {
+                try {
+                    Socket client = svSock.accept();
+                    System.out.format("Client connected: %s\n", client.getRemoteSocketAddress().toString());
+                    ClientHandler handler = new ClientHandler(client);
+                    handler.start();
+                    handler.join();
+                }
+                catch (Exception ex)
                 {
-                    System.out.format("Waiting for connections on %s...\n", svSock.getLocalSocketAddress().toString());
-                    
-                    while (runningHandlers.get() < maxClients)
+                    if (ex instanceof IOException)
                     {
-                        Socket client = svSock.accept();
-                        System.out.format("Client connected: %s\n", client.getRemoteSocketAddress().toString());
-                        ClientHandler handler = new ClientHandler(client);
-                        System.out.format("The number of clients is now %d.\n", runningHandlers.incrementAndGet());
-                        handler.addTerminationListener(server::onHandlerTerminated);
-                        handler.start();
+                        System.out.format("Server error: %s\n", ex.getMessage());
                     }
-
-                    // Wait for runningHandlers to fall below maximum. Then start accepting clients again.
-                    synchronized (server)
+                    if (ex instanceof InterruptedException)
                     {
-                        //System.out.println("Waiting for clients to leave...");
-                        try {
-                            server.wait();
-                        } catch (InterruptedException ie) { }
-                        //System.out.println("Woken from wait!");
+                        // Break if we're interrupted.
+                        return;
                     }
                 }
-
-            } catch (IOException ex) {
-                System.out.format("Server error: %s\n", ex.getMessage());
             }
+
         }
-    }
-
-    private int maxClients;
-    private AtomicInteger runningHandlers = new AtomicInteger(); // current number of clients we have.
-
-    private synchronized void onHandlerTerminated(ClientHandler source)
-    {
-        int currentClients = runningHandlers.decrementAndGet();
-        System.out.format("The number of clients is now %d.\n", currentClients);
-        notify();
     }
 
 }

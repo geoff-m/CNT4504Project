@@ -20,7 +20,6 @@ public class ClientHandler extends Thread {
     }
 
     private Set<Consumer<ClientHandler>> termListeners = new HashSet<>();
-
     public void addTerminationListener(Consumer<ClientHandler> listener) {
         termListeners.add(listener);
     }
@@ -29,18 +28,14 @@ public class ClientHandler extends Thread {
     public void run() {
         try {
             InputStream read = client.getInputStream();
-            while (client.isConnected()) {
-                do {
-                    int message = read.read();
-                    if (message == -1) {
-                        // This means client has disconnected.
-                        return; // Jump to finally...
-                    }
-                    boolean success = handleMessage((byte) message);
-                    if (!success) {
-                        System.out.println("Message could not be handled successfully.");
-                    }
-                } while (read.available() > 0); // While buffer not empty.
+            int message = read.read();
+            if (message == -1) {
+                // This means client has disconnected.
+                return; // Jump to finally...
+            }
+            boolean success = handleMessage((byte) message);
+            if (!success) {
+                System.out.println("Message could not be handled successfully.");
             }
 
         } catch (IOException ex) {

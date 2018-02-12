@@ -1,6 +1,7 @@
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Scanner;
 
 /*
  * This class contains the entry point for the application.
@@ -29,9 +30,6 @@ public class Project1 {
         Server,
         Client
     }
-
-// java Project1 server 1337 -- this starts a server let's say on 192.168.0.5
-    // java Project1 client 192.168.0.5 1337
 
     public static void main(String[] args)
     {
@@ -65,14 +63,32 @@ public class Project1 {
                 return;
             }
 
+            // Start up server.
+            Project1Server server = null;
             try {
-                Project1Server server = new Project1Server(port, 1);
+                server = new Project1Server(port);
                 server.start();
             } catch (IOException ex) {
                 System.out.format("Error setting up server: %s\n", ex.getMessage());
                 return;
             }
 
+            Scanner read = new Scanner(System.in);
+            String line;
+            do {
+                System.out.println("Type \"stop\" to stop server.");
+                line = read.nextLine().trim();
+            } while (!line.equalsIgnoreCase("stop"));
+            System.out.println("Stopping server...");
+            server.stop(3000);
+
+            if (server.isRunning())
+            {
+                // Server is still running after waiting for it to stop.
+                // Kill it.
+                server.abort();
+            }
+            System.out.println("Done.");
         }
 
         if (mode == Mode.Client)
@@ -97,22 +113,11 @@ public class Project1 {
                 System.out.format("Cannot parse port number \"%s\"\n", args[2]);
                 return;
             }
-            Project1Client client;
-            System.out.println("Connecting...");
-            try {
-                client = new Project1Client(addr, port);
-                if (!client.connect())
-                {
-                    System.out.println("Failed to connect.");
-                }
-            } catch (IOException ex) {
-                System.out.format("Error connecting to server: %s\n", ex.getMessage());
-                return;
-            }
 
-            //client.chatDemo();
+            // Start up client.
+            Project1Client client;
+            client = new Project1Client(addr, port);
             client.interact();
-            client.disconnect();
         }
     }
 

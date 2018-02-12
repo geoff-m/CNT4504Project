@@ -10,50 +10,14 @@ import java.util.stream.Stream;
 // Represents a client.
 public class Project1Client {
 
-    private Socket client;
     final int READ_BUFFER_SIZE = 4096;
+    InetAddress remoteAddress;
+    int port;
 
-    // Creates a new client which is connected to the given server.
-    public Project1Client(InetAddress remoteAddress, int port) throws IOException
+    public Project1Client(InetAddress remoteAddress, int port)
     {
-        client = new Socket(remoteAddress, port);
-
-    }
-
-    public boolean connect()
-    {
-        while (true)
-        {
-            if (client.isConnected()) // this doesn't work. always seems to return true.
-            {
-                return true; // We successfully connected.
-            }
-            try
-            {
-                Thread.sleep(1000); // wait before checking again
-            } catch (InterruptedException ie) {
-                return false;
-            }
-        }
-    }
-
-    // Used for testing client->server communication.
-    public void chatDemo()
-    {
-        System.out.println("Whatever you type will be sent to the server. Type 'exit' or 'quit' to disconnect.");
-        Scanner read = new Scanner(System.in);
-        while (client.isConnected())
-        {
-            System.out.print(">> ");
-            String line = read.nextLine();
-            try {
-                client.getOutputStream().write(StandardCharsets.UTF_8.encode(line).array());
-            } catch (IOException ex) {
-                System.out.format("\nError! %s\n", ex.getMessage());
-                return;
-            }
-        }
-        System.out.println("Disconnected from server.");
+        this.remoteAddress = remoteAddress;
+        this.port = port;
     }
 
     // Uses the console to present a menu and interact with the server. Returns when the user indicates they want to quit.
@@ -110,15 +74,31 @@ public class Project1Client {
                 //System.out.format("OPERATION SELECTED: %s\n", op.getDescription());
 
             // Send the command to the server.
+            Socket client = null;
+            String response = null;
             try {
-                writeByte(op.code);
+                client = new Socket(remoteAddress, port);
+                client.getOutputStream().write(op.code);
+                client.getOutputStream().flush();
 
-                // display response from server (as text)
-                System.out.println(readAll(client.getInputStream()));
+                // Get response from server (as text)
+                response = readAll(client.getInputStream());
 
             } catch (IOException ex) {
                 System.out.format("Error communicating with server: %s\n", ex.getMessage());
             }
+            finally
+            {
+                // Close the connection.
+                try {
+                    if (client != null)
+                        client.close();
+                } catch (IOException ex) { }
+            }
+
+            // Display response to user.
+            if (response != null)
+                System.out.println(response);
 
         } // infinite loop.
     }
@@ -135,15 +115,6 @@ public class Project1Client {
             sb.append(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(buf)));
         } while (bytesRead > 0 && is.available() > 0);
         return sb.toString();
-    }
-
-    // Disconnects from the server.
-    public void disconnect()
-    {
-        try {
-            if (client != null)
-                client.close();
-        } catch (IOException ex) { }
     }
 
     // Returns true if and only if the first argument equals any of the other arguments.
@@ -171,13 +142,6 @@ public class Project1Client {
         return sb.toString();
     }
 
-    // Immediately sends a single byte to the socket.
-    private void writeByte(byte b) throws IOException
-    {
-        client.getOutputStream().write(b);
-        client.getOutputStream().flush();
-    }
-
     // Parses the given string as an integer. Returns null on failure.
     private static Integer tryParseInteger(String s)
     {
@@ -187,7 +151,6 @@ public class Project1Client {
             return null;
         }
     }
-
 
     // Represents all the things this client can be made to say to the server.
     private static List<Operation> _operations;
