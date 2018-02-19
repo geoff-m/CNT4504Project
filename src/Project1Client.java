@@ -73,34 +73,39 @@ public class Project1Client {
 
                 //System.out.format("OPERATION SELECTED: %s\n", op.getDescription());
 
-            // Send the command to the server.
-            Socket client = null;
-            String response = null;
+            // Send the command to the server and print result to console.
             try {
-                client = new Socket(remoteAddress, port);
-                client.getOutputStream().write(op.code);
-                client.getOutputStream().flush();
-
-                // Get response from server (as text)
-                response = readAll(client.getInputStream());
-
+                System.out.println(doRequest(op));
             } catch (IOException ex) {
                 System.out.format("Error communicating with server: %s\n", ex.getMessage());
             }
-            finally
-            {
-                // Close the connection.
-                try {
-                    if (client != null)
-                        client.close();
-                } catch (IOException ex) { }
-            }
-
-            // Display response to user.
-            if (response != null)
-                System.out.println(response);
 
         } // infinite loop.
+    }
+
+    // Sends a request to the server and returns its response.
+    public String doRequest(Operation op) throws IOException
+    {
+        Socket client = null;
+        String response = null;
+        try {
+            client = new Socket(remoteAddress, port);
+            client.getOutputStream().write(op.code);
+            client.getOutputStream().flush();
+
+            // Get response from server (as text)
+            response = readAll(client.getInputStream());
+        }
+        finally
+        {
+            // Close the connection.
+            try {
+                if (client != null)
+                    client.close();
+            } catch (IOException ex) { }
+        }
+
+        return response;
     }
 
     // Reads all data from the given stream and decodes it as UTF-8 text.

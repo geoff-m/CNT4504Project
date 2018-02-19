@@ -28,7 +28,8 @@ public class Project1 {
     {
         Unknown,
         Server,
-        Client
+        Client,
+        ManyClient
     }
 
     public static void main(String[] args)
@@ -140,6 +141,10 @@ public class Project1 {
         if (arg.equalsIgnoreCase("server") || arg.equalsIgnoreCase("s"))
         {
             return Mode.Server;
+        }
+        if (arg.equalsIgnoreCase("many") || arg.equalsIgnoreCase("m"))
+        {
+            return Mode.ManyClient;
         }
         return Mode.Unknown;
     }
