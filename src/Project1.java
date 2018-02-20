@@ -105,7 +105,7 @@ public class Project1 {
             // Kill it.
             server.abort();
         }
-        System.out.println("Done.");
+	System.exit(0); // Testing shows this is necessary.
     }
 
     // Starts the application as an interactive client.
