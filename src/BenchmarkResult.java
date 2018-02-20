@@ -1,9 +1,9 @@
 public class BenchmarkResult {
     boolean success;
     long responseSize;
-    double duration;
+    long duration;
 
-    public BenchmarkResult(boolean success, long responseSize, double duration)
+    public BenchmarkResult(boolean success, long responseSize, long duration)
     {
         this.success = success;
         this.responseSize = responseSize;
@@ -36,7 +36,7 @@ public class BenchmarkResult {
         return responseSize;
     }
 
-    public double getDuration()
+    public long getDuration()
     {
         return duration;
     }

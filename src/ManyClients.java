@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 public class ManyClients {
 
     List<Project1Client> clients;
-    public ManyClients(int count, InetAddress remoteAddress, int port) throws IOException
+    public ManyClients(int count, InetAddress remoteAddress, int port)
     {
         clients = new ArrayList<>();
         for (int i = 0; i < count; ++i)
@@ -21,13 +21,15 @@ public class ManyClients {
 
     public BenchmarkResult[] timeOperation(Project1Client.Operation op)
     {
-        TimeIt[] tests = new TimeIt[clients.size()];
+        Tester[] tests = new Tester[clients.size()];
         ExecutorService pool = Executors.newCachedThreadPool();
         // Start all tests.
         for (int i = 0; i < clients.size(); ++i)
         {
             Project1Client c = clients.get(i);
-            pool.execute(new TimeIt(c, op));
+            Tester t = new Tester(c, op);
+            tests[i] = t;
+            pool.execute(t);
         }
 
         // Wait for tests to finish and collect results.
@@ -47,13 +49,13 @@ public class ManyClients {
     }
 
 
-    class TimeIt extends Thread
+    class Tester extends Thread
     {
         private Project1Client client;
         private Project1Client.Operation op;
         private BenchmarkResult result = null;
 
-        public TimeIt(Project1Client client, Project1Client.Operation operation)
+        public Tester(Project1Client client, Project1Client.Operation operation)
         {
             this.client = client;
             op = operation;
@@ -68,11 +70,14 @@ public class ManyClients {
         public void run()
         {
             try {
-                long startTime = System.nanoTime();
+                //long startTime = System.nanoTime();
+                long startTime = System.currentTimeMillis();
                 String resp = client.doRequest(op);
-                long stopTime = System.nanoTime();
+                //long stopTime = System.nanoTime();
+                long stopTime = System.currentTimeMillis();
 
-                result = new BenchmarkResult(true, resp.length(), stopTime - startTime);
+                int length = resp.trim().length();
+                result = new BenchmarkResult(true, length, stopTime - startTime);
                 /*
                 result.setResponseSize(resp.length());
                 result.setSuccess(true);
