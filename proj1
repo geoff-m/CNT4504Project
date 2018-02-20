@@ -1,0 +1,7 @@
+#!/bin/bash
+FILE=Project1.class
+if [ -f $FILE ]; then
+	java ${FILE}  $1
+else
+	echo "File ${FILE} does not exist! Did you run the makefile?"
+fi
