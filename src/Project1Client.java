@@ -2,10 +2,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 // Represents a client.
 public class Project1Client {
@@ -83,6 +87,7 @@ public class Project1Client {
         } // infinite loop.
     }
 
+
     // Sends a request to the server and returns its response.
     public String doRequest(Operation op) throws IOException
     {
@@ -117,8 +122,9 @@ public class Project1Client {
         do
         {
             bytesRead = is.read(buf);
-            sb.append(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(buf)));
+            sb.append(UTF_8.decode(ByteBuffer.wrap(buf)));
         } while (bytesRead > 0 && is.available() > 0);
+
         return sb.toString();
     }
 
@@ -174,7 +180,7 @@ public class Project1Client {
         _operations.add(new Operation("Get host current users",  (byte)0x55,
                 "users", "who"));
         _operations.add(new Operation("Get host running processes",  (byte)0x66,
-                "process", "processes", "ps"));
+                "processes", "process", "ps"));
     }
 
     // Represents a function the client has.
@@ -211,6 +217,11 @@ public class Project1Client {
         {
             return code;
         }
+
+        public String getShortName()
+        {
+            return nicks[0];
+        }
     }
 
     // Displays the list of choices to the user.
@@ -225,4 +236,39 @@ public class Project1Client {
         System.out.println();
     }
 
+    public static Operation parseOperation(String input)
+    {
+        Operation op;
+        // Try parsing the choice as a number.
+        Integer choice = tryParseInteger(input.replaceAll("[\\p{Punct}]", ""));
+
+        if (choice == null)
+        {
+            // Try parsing the choice as a word.
+            List<Operation> matches = _operations.stream().filter(o -> o.matches(input)).collect(Collectors.toCollection(ArrayList<Operation>::new));
+            switch (matches.size())
+            {
+                case 0:
+                    // Search returned no results. Invalid choice.
+                    return null;
+                case 1:
+                    // Search returned exactly one result.
+                    return matches.get(0);
+                default:
+                    // There was some ambiguity when attempting to map the input to an operation.
+                    // This will never happen in deployment if nicknames are mutually exclusive.
+                    return null;
+            }
+        } else {
+            // Choice was a number.
+
+            if (choice < 1 || choice > _operations.size()) {
+                // Invalid choice.
+                return null;
+            }
+
+            // Choice was in range.
+            return _operations.get(choice - 1);
+        }
+    }
 }

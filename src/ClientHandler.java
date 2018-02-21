@@ -102,7 +102,9 @@ public class ClientHandler extends Thread {
     private static boolean haveUnix;
 
     static {
-        haveUnix = System.getProperty("os.name").toLowerCase().contains("nix");
+	String osname = System.getProperty("os.name").toLowerCase();
+	System.out.format("osname: %s\n", osname);
+        haveUnix = osname.contains("nux") || osname.contains("nix");
     }
 
     private void handleUptime() throws IOException // todo: test on linux
