@@ -1,6 +1,7 @@
 
 import java.net.*;
 import java.io.*;
+import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -154,7 +155,7 @@ public class ClientHandler extends Thread {
                 s.nextLine(); // Discard unneeded output.
                 s.next();
                 s.next();
-                msg = s.next();
+                msg = s.next() + "B in use";
                 s.close();
             } catch (IOException e) {
                 msg = "Error reading memory usage";
@@ -168,7 +169,20 @@ public class ClientHandler extends Thread {
 
     private void handleNetstat() throws IOException // todo: implement me!
     {
-        write.write(StandardCharsets.UTF_8.encode("dummy netstat output").array());
+        String msg;
+        if (haveUnix) {
+            try {
+                ProcessBuilder psb = new ProcessBuilder();
+                psb.command("netstat");
+                Process p = psb.start();
+                msg = readAll(p.getInputStream());
+            } catch (IOException e) {
+                msg = "Error reading netstat";
+            }
+        } else {
+            msg = "Netstat not supported (linux not detected)";
+        }
+        write.write(StandardCharsets.UTF_8.encode(msg).array());
         write.flush();
     }
 
@@ -182,6 +196,11 @@ public class ClientHandler extends Thread {
     {
         write.write(StandardCharsets.UTF_8.encode("dummy ps output").array());
         write.flush();
+    }
+
+    static String readAll(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
     }
 
 }
