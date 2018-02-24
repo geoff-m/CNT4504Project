@@ -194,9 +194,22 @@ public class ClientHandler extends Thread {
         write.flush();
     }
 
-    private void handleProcesses() throws IOException // todo: implement me!
+    private void handleProcesses() throws IOException // Sends ps command + shows running processes
     {
-        write.write(StandardCharsets.UTF_8.encode("dummy ps output").array());
+        String msg;
+        if (haveUnix) {
+            try {
+                ProcessBuilder psb = new ProcessBuilder();
+                psb.command("ps");
+                Process p = psb.start();
+                msg = readAll(p.getInputStream());
+            } catch (IOException e) {
+                msg = "Error reading processes";
+            }
+        } else {
+            msg = "Processes not supported (linux not detected)";
+        }
+        write.write(StandardCharsets.UTF_8.encode(msg).array());
         write.flush();
     }
 
