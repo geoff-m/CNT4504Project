@@ -115,7 +115,7 @@ public class ClientHandler extends Thread {
             Scanner read = null;
             try {
                 read = new Scanner(new FileInputStream("/proc/uptime"));
-                upSeconds = read.nextInt();
+                upSeconds = (int)read.nextDouble();
             } catch (IOException e) {
                 System.out.format("Error getting uptime: %s\n", e.getMessage());
                 upSeconds = -1;
@@ -129,11 +129,14 @@ public class ClientHandler extends Thread {
                 int upMinutes = upSeconds / 60;
                 int upHours = upMinutes / 60;
                 int upDays = upHours / 24;
+		upHours %= upDays * 24;
+		upMinutes %= upHours * 60;
+		upSeconds %= 60;
 
                 if (upDays > 0) {
-                    msg = String.format("%dd%dh%02dm%02ds", upDays, upHours, upMinutes, upSeconds);
+                    msg = String.format("%dd %dh %02dm %02ds", upDays, upHours, upMinutes, upSeconds);
                 } else {
-                    msg = String.format("%dh%02dm%02ds", upHours, upMinutes, upSeconds);
+                    msg = String.format("%dh %02dm %02ds", upHours, upMinutes, upSeconds);
                 }
             }
         } else {
