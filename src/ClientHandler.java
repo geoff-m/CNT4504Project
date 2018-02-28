@@ -193,7 +193,20 @@ public class ClientHandler extends Thread {
 
     private void handleUsers() throws IOException // todo: implement me!
     {
-        write.write(StandardCharsets.UTF_8.encode("dummy users output").array());
+        String msg;
+        if (haveUnix) {
+            try {
+                ProcessBuilder psb = new ProcessBuilder();
+                psb.command("users");
+                Process p = psb.start();
+                msg = readAll(p.getInputStream());
+            } catch (IOException e) {
+                msg = "Error reading users";
+            }
+        } else {
+            msg = "Users not supported (linux not detected)";
+        }
+        write.write(StandardCharsets.UTF_8.encode(msg).array());
         write.flush();
     }
 
