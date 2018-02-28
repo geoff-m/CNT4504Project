@@ -152,16 +152,9 @@ public class ClientHandler extends Thread {
         if (haveUnix) {
             try {
                 ProcessBuilder psb = new ProcessBuilder();
-                psb.command("free", "-h"); // -h for human-readable format
+                psb.command("free");
                 Process p = psb.start();
-                InputStreamReader isr = new InputStreamReader(p.getInputStream());
-                BufferedReader read = new BufferedReader(isr);
-                Scanner s = new Scanner(read);
-                s.nextLine(); // Discard unneeded output.
-                s.next();
-                s.next();
-                msg = s.next() + "B in use";
-                s.close();
+                msg = readAll(p.getInputStream());
             } catch (IOException e) {
                 msg = "Error reading memory usage";
             }
@@ -197,7 +190,7 @@ public class ClientHandler extends Thread {
         if (haveUnix) {
             try {
                 ProcessBuilder psb = new ProcessBuilder();
-                psb.command("users");
+                psb.command("who");
                 Process p = psb.start();
                 msg = readAll(p.getInputStream());
             } catch (IOException e) {
@@ -216,7 +209,7 @@ public class ClientHandler extends Thread {
         if (haveUnix) {
             try {
                 ProcessBuilder psb = new ProcessBuilder();
-                psb.command("ps");
+                psb.command("ps", "-e");
                 Process p = psb.start();
                 msg = readAll(p.getInputStream());
             } catch (IOException e) {
