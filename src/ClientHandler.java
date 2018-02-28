@@ -146,7 +146,7 @@ public class ClientHandler extends Thread {
         write.flush();
     }
 
-    private void handleMemoryUsage() throws IOException // todo: test me on linux
+    private void handleMemoryUsage() throws IOException // Done.
     {
         String msg;
         if (haveUnix) {
@@ -172,7 +172,7 @@ public class ClientHandler extends Thread {
         write.flush();
     }
 
-    private void handleNetstat() throws IOException // todo: implement me!
+    private void handleNetstat() throws IOException // Done.
     {
         String msg;
         if (haveUnix) {

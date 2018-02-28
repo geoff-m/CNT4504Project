@@ -10,22 +10,6 @@ public class BenchmarkResult {
         this.duration = duration;
     }
 
-    /*
-    public void setSuccess(boolean success)
-    {
-        this.success = success;
-    }
-
-    public void setResponseSize(long responseSize)
-    {
-        this.responseSize = responseSize;
-    }
-
-    public void setDuration(double duration)
-    {
-        this.duration = duration;
-    }
-*/
     public boolean wasSuccess()
     {
         return success;
