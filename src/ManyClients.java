@@ -70,19 +70,12 @@ public class ManyClients {
         public void run()
         {
             try {
-                //long startTime = System.nanoTime();
                 long startTime = System.currentTimeMillis();
                 String resp = client.doRequest(op);
-                //long stopTime = System.nanoTime();
                 long stopTime = System.currentTimeMillis();
 
                 int length = resp.trim().length();
                 result = new BenchmarkResult(true, length, stopTime - startTime);
-                /*
-                result.setResponseSize(resp.length());
-                result.setSuccess(true);
-                result.setDuration(time);
-                */
             }
             catch (IOException ex)
             {
