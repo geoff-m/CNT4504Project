@@ -7,15 +7,14 @@
 
 import java.io.IOException;
 import java.net.*;
-import java.util.concurrent.atomic.*;
 
-public class Project1Server {
+public class Project2Server {
 
     private ServerSocket svSock;
 
     private Listener listen;
     private Thread tListen;
-    public Project1Server(int port) throws IOException
+    public Project2Server(int port) throws IOException
     {
         svSock = new ServerSocket(port);
         listen = new Listener(this);
@@ -49,8 +48,8 @@ public class Project1Server {
 
     class Listener implements Runnable
     {
-        Project1Server server;
-        public Listener(Project1Server server)
+        Project2Server server;
+        public Listener(Project2Server server)
         {
             this.server = server;
         }
@@ -72,18 +71,13 @@ public class Project1Server {
                     System.out.format("Client connected: %s\n", client.getRemoteSocketAddress().toString());
                     ClientHandler handler = new ClientHandler(client);
                     handler.start();
-                    handler.join();
+                    //handler.join();
                 }
                 catch (Exception ex)
                 {
                     if (ex instanceof IOException)
                     {
                         System.out.format("Server error: %s\n", ex.getMessage());
-                    }
-                    if (ex instanceof InterruptedException)
-                    {
-                        // Break if we're interrupted.
-                        return;
                     }
                 }
             }

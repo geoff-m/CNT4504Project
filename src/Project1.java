@@ -81,9 +81,9 @@ public class Project1 {
             return;
         }
         // Start up server.
-        Project1Server server = null;
+        Project2Server server = null;
         try {
-            server = new Project1Server(port);
+            server = new Project2Server(port);
             server.start();
         } catch (IOException ex) {
             System.err.format("Error setting up server: %s\n", ex.getMessage());
