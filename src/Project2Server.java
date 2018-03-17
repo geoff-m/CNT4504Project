@@ -7,6 +7,7 @@
 
 import java.io.IOException;
 import java.net.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Project2Server {
 
@@ -46,6 +47,20 @@ public class Project2Server {
         tListen.interrupt();
     }
 
+    AtomicInteger runningClientHandlers = new AtomicInteger();
+    private void onClientHandlerExit(ClientHandler sender)
+    {
+        System.out.format("Client disconnected: %s\n", sender.getRemoteSocketAddress());
+
+        int current = runningClientHandlers.decrementAndGet();
+        if (current == 1)
+        {
+            System.out.println("There is now 1 client connected.");
+        } else {
+            System.out.format("There are now %d clients connected.\n", current);
+        }
+    }
+
     class Listener implements Runnable
     {
         Project2Server server;
@@ -67,11 +82,16 @@ public class Project2Server {
             while (!stop)
             {
                 try {
+                    // Await new client.
                     Socket client = svSock.accept();
-                    System.out.format("Client connected: %s\n", client.getRemoteSocketAddress().toString());
+
+                    // Launch a new ClientHandler.
                     ClientHandler handler = new ClientHandler(client);
+                    runningClientHandlers.getAndIncrement();
+                    handler.addTerminationListener(Project2Server.this::onClientHandlerExit);
                     handler.start();
-                    //handler.join();
+
+                    System.out.format("Client connected: %s\n", client.getRemoteSocketAddress().toString());
                 }
                 catch (Exception ex)
                 {

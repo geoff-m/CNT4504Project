@@ -7,7 +7,7 @@ import java.util.Scanner;
  * This class contains the entry point for the application.
  * It parses the command-line arguments and starts execution in the specified mode.
  */
-public class Project1 {
+public class Project2 {
 
     private static void showUsage()
     {

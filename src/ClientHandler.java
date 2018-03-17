@@ -50,8 +50,6 @@ public class ClientHandler extends Thread {
             } catch (IOException e) {
             } // Ignore exception when attempting to close client.
 
-            System.out.format("Client disconnected: %s\n", client.getRemoteSocketAddress().toString());
-
             for (Consumer<ClientHandler> listener : termListeners) {
                 listener.accept(this);
             }
@@ -102,12 +100,12 @@ public class ClientHandler extends Thread {
     private static boolean haveUnix;
 
     static {
-	String osname = System.getProperty("os.name").toLowerCase();
-	System.out.format("osname: %s\n", osname);
+	    String osname = System.getProperty("os.name").toLowerCase();
+	    System.out.format("osname: %s\n", osname);
         haveUnix = osname.contains("nux") || osname.contains("nix");
     }
 
-    private void handleUptime() throws IOException // todo: test on linux
+    private void handleUptime() throws IOException
     {
         String msg;
         if (haveUnix) {
@@ -184,7 +182,7 @@ public class ClientHandler extends Thread {
         write.flush();
     }
 
-    private void handleUsers() throws IOException // todo: implement me!
+    private void handleUsers() throws IOException
     {
         String msg;
         if (haveUnix) {
@@ -225,6 +223,11 @@ public class ClientHandler extends Thread {
     static String readAll(java.io.InputStream is) {
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
+    }
+
+    public SocketAddress getRemoteSocketAddress()
+    {
+        return client.getRemoteSocketAddress();
     }
 
 }
