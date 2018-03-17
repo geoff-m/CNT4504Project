@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // Creates and controls a number of clients to do the same thing at a time.
 public class ManyClients {
@@ -48,6 +49,7 @@ public class ManyClients {
         return results;
     }
 
+    AtomicBoolean anyFailures = new AtomicBoolean(false);
 
     class Tester extends Thread
     {
@@ -80,6 +82,11 @@ public class ManyClients {
             catch (IOException ex)
             {
                 result = new BenchmarkResult(false, 0, 0);
+                if (anyFailures.compareAndSet(false, true))
+                {
+                    // This is the first error ManyClients has encountered.
+                    System.out.format("Error: %s.\n", ex.getMessage());
+                }
             }
         }
     }
